@@ -2,6 +2,7 @@ package kaola;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
@@ -120,13 +121,16 @@ public class TopSort extends Configured implements Tool {
     }
 
     public static class KeyAttributeReducer extends Reducer<DateOccurrenceKey, Text, Text, Text> {
-        protected static int topN = 3;
+
+        private final Logger logger = Logger.getLogger(TopCounter.KeyAttributeMapper.class);
+
         public void reduce(DateOccurrenceKey key, Iterable<Text> values, Context context)
                 throws IOException, InterruptedException {
+            logger.info("Top N " + Config.topN);
             String val_cum = "";
             int i = 0;
             for (Text val : values) {
-                if (i >= topN) {
+                if (i >= Config.topN) {
                     break;
                 }
 
@@ -156,6 +160,9 @@ public class TopSort extends Configured implements Tool {
 
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
+        FileSystem filesystem = FileSystem.get(conf);
+        filesystem.delete(new Path(args[1]), true);
+
         return job.waitForCompletion(true) ? 0 : 1;
     }
 }

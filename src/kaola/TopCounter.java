@@ -2,6 +2,7 @@ package kaola;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
@@ -84,13 +85,13 @@ public class TopCounter extends Configured implements Tool {
 
         private final Logger logger = Logger.getLogger(KeyAttributeMapper.class);
         private final static IntWritable one = new IntWritable(1);
-        private final static int keyAttributeIdx = 12;
         private final static int dateIdx = 8;
         private Text word = new Text();
 
         public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
+            logger.info("keyAttributeIdx is " + Config.keyAttributeIdx);
             String[] tokens = value.toString().split("\\|");
-            if (tokens.length <= dateIdx || tokens.length <= keyAttributeIdx) {
+            if (tokens.length <= dateIdx || tokens.length <= Config.keyAttributeIdx) {
                 logger.warn("malformed record ".concat(value.toString()));
                 return;
             }
@@ -103,9 +104,9 @@ public class TopCounter extends Configured implements Tool {
 
             logger.info("Token size " + tokens.length);
             logger.info("Date " + date);
-            logger.info("KeyAttribute Text ".concat(tokens[keyAttributeIdx]));
+            logger.info("KeyAttribute Text ".concat(tokens[Config.keyAttributeIdx]));
 
-            String[] keyAttrs = tokens[keyAttributeIdx].split(",");
+            String[] keyAttrs = tokens[Config.keyAttributeIdx].split(",");
             logger.info("Found " + keyAttrs.length + " Key Attributes");
 
             for (String attr : keyAttrs) {
@@ -141,7 +142,6 @@ public class TopCounter extends Configured implements Tool {
 
     public static class KeyAttributeReducer extends Reducer<DateAttributeKey, IntWritable, Text, IntWritable> {
 
-        private final Logger logger = Logger.getLogger(KeyAttributeReducer.class);
         private IntWritable result = new IntWritable();
 
         public void reduce(DateAttributeKey key, Iterable<IntWritable> values, Context context)
@@ -151,7 +151,6 @@ public class TopCounter extends Configured implements Tool {
                 sum += val.get();
             }
             result.set(sum);
-            logger.info("Reduce key ".concat(key.toString()));
             context.write(new Text(key.toString()), result);
         }
     }
@@ -163,16 +162,14 @@ public class TopCounter extends Configured implements Tool {
         job.setJarByClass(getClass());
         job.setMapperClass(KeyAttributeMapper.class);
         job.setReducerClass(KeyAttributeReducer.class);
-//        job.setPartitionerClass(DatePartitioner.class);
-//        job.setGroupingComparatorClass(DateGroupComparator.class);
-//        job.setSortComparatorClass(MySortComparator.class);
-//        job.setNumReduceTasks(2);
 
         job.setOutputValueClass(IntWritable.class);
         job.setOutputKeyClass(DateAttributeKey.class);
 
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
+        FileSystem filesystem = FileSystem.get(conf);
+        filesystem.delete(new Path(args[1]), true);
         return job.waitForCompletion(true) ? 0 : 1;
     }
 
