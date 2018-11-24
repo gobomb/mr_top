@@ -3,7 +3,6 @@ package kaola;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.io.WritableComparator;
@@ -25,7 +24,6 @@ public class TopSort extends Configured implements Tool {
 
         protected String keyDate = new String();
         protected Integer keyOccurrence;
-        protected String keyAttribute = new String();
 
         public String getKeyDate() {
             return keyDate;
@@ -43,14 +41,9 @@ public class TopSort extends Configured implements Tool {
             this.keyOccurrence = keyOccurrence;
         }
 
-        public String getKeyAttribute() {
-            return keyAttribute;
-        }
-
-        DateOccurrenceKey(String date, Integer keyOccurrence, String attribute) {
+        DateOccurrenceKey(String date, Integer keyOccurrence) {
             this.keyDate = date;
             this.keyOccurrence = keyOccurrence;
-            this.keyAttribute = attribute;
         }
 
         DateOccurrenceKey() {
@@ -98,7 +91,7 @@ public class TopSort extends Configured implements Tool {
 
             logger.info("Token ".concat(tokens.toString()));
 
-            DateOccurrenceKey dateKey = new DateOccurrenceKey(tokens[0], Integer.parseInt(tokens[2]), tokens[1]);
+            DateOccurrenceKey dateKey = new DateOccurrenceKey(tokens[0], Integer.parseInt(tokens[2]));
             context.write(dateKey, new Text(tokens[1]));
         }
     }
@@ -127,20 +120,24 @@ public class TopSort extends Configured implements Tool {
     }
 
     public static class KeyAttributeReducer extends Reducer<DateOccurrenceKey, Text, Text, Text> {
-
-        private final Logger logger = Logger.getLogger(KeyAttributeReducer.class);
-
+        protected static int topN = 3;
         public void reduce(DateOccurrenceKey key, Iterable<Text> values, Context context)
                 throws IOException, InterruptedException {
             String val_cum = "";
+            int i = 0;
             for (Text val : values) {
+                if (i >= topN) {
+                    break;
+                }
+
+                i++;
                 if (!val_cum.isEmpty()) {
                     val_cum += ",";
                 }
                 val_cum += val.toString();
             }
+
             context.write(new Text(key.keyDate), new Text(val_cum));
-            // FIXME only Top 10
         }
     }
 
@@ -151,10 +148,8 @@ public class TopSort extends Configured implements Tool {
         job.setJarByClass(getClass());
         job.setMapperClass(OccurrenceMapper.class);
         job.setReducerClass(KeyAttributeReducer.class);
-//        job.setPartitionerClass(DatePartitioner.class);
-//        job.setGroupingComparatorClass(DateGroupComparator.class);
-//        job.setSortComparatorClass(MySortComparator.class);
-//        job.setNumReduceTasks(2);
+        job.setPartitionerClass(DatePartitioner.class);
+        job.setGroupingComparatorClass(DateGroupComparator.class);
 
         job.setOutputValueClass(Text.class);
         job.setOutputKeyClass(DateOccurrenceKey.class);
