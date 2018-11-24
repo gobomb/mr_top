@@ -101,7 +101,6 @@ public class TopCounter extends Configured implements Tool {
                 return;
             }
 
-            // FIXME retrieve only dates
             logger.info("Token size " + tokens.length);
             logger.info("Date " + date);
             logger.info("KeyAttribute Text ".concat(tokens[keyAttributeIdx]));
@@ -154,14 +153,13 @@ public class TopCounter extends Configured implements Tool {
             result.set(sum);
             logger.info("Reduce key ".concat(key.toString()));
             context.write(new Text(key.toString()), result);
-            // FIXME get only Tops
         }
     }
 
     @Override
     public int run(String[] args) throws Exception {
         Configuration conf = new Configuration();
-        Job job = Job.getInstance(conf, "TopCounter Products");
+        Job job = Job.getInstance(conf, "TopCounter");
         job.setJarByClass(getClass());
         job.setMapperClass(KeyAttributeMapper.class);
         job.setReducerClass(KeyAttributeReducer.class);
