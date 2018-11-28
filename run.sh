@@ -1,5 +1,5 @@
 #!/bin/sh
-export JAVA_HOME=/usr/lib/jvm/java
+export JAVA_HOME=/usr/lib/default
 export PATH=${JAVA_HOME}/bin:${PATH}
 export HADOOP_CLASSPATH=${JAVA_HOME}/lib/tools.jar
 export HADOOP_PREFIX=/usr/local/hadoop
@@ -18,4 +18,7 @@ pushd ${HADOOP_PREFIX}
 bin/hadoop jar ${CODE_SPACE}/src/top.jar Top /kaola/order/input /kaola/order/output
 bin/hadoop fs -cat /kaola/order/intermediate/part-r-00000
 bin/hadoop fs -cat /kaola/order/output/part-r-00000
+
+bin/hadoop fs -get /kaola/order/intermediate/part-r-00000 /root/output1.
+bin/hadoop fs -get /kaola/order/output/part-r-00000 /root/output2
 popd

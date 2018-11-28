@@ -2,6 +2,12 @@
 
 ## How-to
 
+### Run the hadoop via docker
+
+```
+docker run -d --name hadoop-test -P sequenceiq/hadoop-docker:latest
+```
+
 ### Change the current user
 
 Change to user `hadoop` by running `su - hadoop`.
