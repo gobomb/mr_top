@@ -19,6 +19,6 @@ bin/hadoop jar ${CODE_SPACE}/src/top.jar Top /kaola/order/input /kaola/order/out
 bin/hadoop fs -cat /kaola/order/intermediate/part-r-00000
 bin/hadoop fs -cat /kaola/order/output/part-r-00000
 
-bin/hadoop fs -get /kaola/order/intermediate/part-r-00000 /root/output1
-bin/hadoop fs -get /kaola/order/output/part-r-00000 /root/output2
+bin/hadoop fs -get /kaola/order/intermediate/part-r-00000 /root/output/output1
+bin/hadoop fs -get /kaola/order/output/part-r-00000 /root/output/output2
 popd
