@@ -1,7 +1,4 @@
-FROM sequenceiq/hadoop-docker
-RUN yum install -y yum-plugin-ovl ; yum clean all
-RUN yum install -y git ;  yum clean all
-RUN yum update -y nss nss-util nspr 
+FROM registry.local/hadoop-base:latest
 RUN mkdir /root/output &&mkdir /root/code &&mkdir /root/input
 COPY src /root/code
 COPY run.sh /root/code
