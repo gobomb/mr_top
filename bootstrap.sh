@@ -24,7 +24,7 @@ sleep 10
 
 sleep 10
 
-/root/code/run.sh
+cd /root/code && ./run.sh
 
 
 if [[ $1 == "-d" ]]; then
